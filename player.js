@@ -23,7 +23,7 @@ class Player{
         var cameraPos = position;
         var cameraTarget = add(cameraPos, [0.0, 0.0, -5.0]);
         this.fov = 90;
-        this.camera = new Camera(cameraPos, cameraTarget, this.fov, 0.1, 1000);
+        this.camera = new Camera(cameraPos, cameraTarget, this.fov, 0.1, 1000, 0.05, 6, radius * 0.5, radius * 0.8);
         this.speed = speed;
         this.velocity = [0.0, 0.0, 0.0];
     }
