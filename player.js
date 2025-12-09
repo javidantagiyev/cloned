@@ -2,25 +2,30 @@ class Player{
     // Player's params
     position;
     speed;
+    velocity;
+    radius;
 
     // Video settings
     fov;
 
     // Player's body(Player also is a sphere)
-    sphereModel;
     model;
     camera;
 
-    constructor(position, model, speed = 10){
+    alive = true;
+
+    constructor(position, model, radius = 0.5, speed = 6){
         this.model = model;
         this.position = position;
+        this.radius = radius;
         model.setPosition(position[0], position[1], position[2]);
-        // var cameraPos = add(position, [0.0, 1.0, 2.0]);
+        model.setSize(radius);
         var cameraPos = position;
         var cameraTarget = add(cameraPos, [0.0, 0.0, -5.0]);
         this.fov = 90;
-        this.camera = new Camera(cameraPos, cameraTarget, this.fov, 0.1, 1000);
+        this.camera = new Camera(cameraPos, cameraTarget, this.fov, 0.1, 1000, 0.08, 6);
         this.speed = speed;
+        this.velocity = [0, 0, 0];
     }
 
     // Move player's position
@@ -32,40 +37,35 @@ class Player{
         this.model.setPosition(this.position[0], this.position[1], this.position[2]);
     }
 
-    // Moving player in camera directions
-    moveForward(delta){
+    update(delta){
+        if(!this.alive) return;
+        this.move(this.velocity[0] * delta, this.velocity[1] * delta, this.velocity[2] * delta);
+        // Apply damping to slow down if no input
+        this.velocity = this.velocity.map(v => v * 0.9);
+    }
+
+    accelerate(forward, delta){
+        if(!this.alive) return;
         const direct = this.camera.direction;
-        const x = (direct[0] * this.speed * delta);
-        const y = (direct[1] * this.speed * delta);
-        const z = (direct[2] * this.speed * delta);
-        this.move(x, y, z);
+        this.velocity[0] += direct[0] * forward * this.speed * delta;
+        this.velocity[1] += direct[1] * forward * this.speed * delta;
+        this.velocity[2] += direct[2] * forward * this.speed * delta;
     }
 
-    moveBack(delta){
-        const direct = this.camera.direction;
-        const x = -(direct[0] * this.speed * delta);
-        const y = -(direct[1] * this.speed * delta);
-        const z = -(direct[2] * this.speed * delta);
-        this.move(x, y, z);
-    }
-
-    moveRight(delta){
+    strafe(amount, delta){
+        if(!this.alive) return;
         const right = cross(this.camera.direction, this.camera.cameraUp);
-        const x = (right[0] * this.speed * delta);
-        const y = (right[1] * this.speed * delta);
-        const z = (right[2] * this.speed * delta);
-        this.move(x, y, z);
+        this.velocity[0] += right[0] * amount * this.speed * delta;
+        this.velocity[1] += right[1] * amount * this.speed * delta;
+        this.velocity[2] += right[2] * amount * this.speed * delta;
     }
 
-    moveLeft(delta){
-        const right = cross(this.camera.direction, this.camera.cameraUp);
-        const x = -(right[0] * this.speed * delta);
-        const y = -(right[1] * this.speed * delta);
-        const z = -(right[2] * this.speed * delta);
-        this.move(x, y, z);
+    moveUp(amount, delta){
+        this.velocity[1] += amount * this.speed * delta;
     }
 
-    moveUp(){
-
+    grow(radius){
+        this.radius = radius;
+        this.model.setSize(radius);
     }
 }

@@ -1,24 +1,33 @@
+var keysDown = {};
+
 function keyContols(e){
-    if(e.key == 'w'){
-        player.moveForward(deltaTime);
-    }
-    if(e.key == 'a'){
-        player.moveLeft(deltaTime);
-    }
-    if(e.key == 's'){
-        player.moveBack(deltaTime);
-    }
-    if(e.key == 'd'){
-        player.moveRight(deltaTime);
-    }
-    if(e.key == ' '){ // It is space button
-        player.move(0.0, player.speed * deltaTime, 0.0);
-    }
-    if(e.key == 'Shift'){
-        player.move(0.0, -player.speed * deltaTime, 0.0);
-    }
+    keysDown[e.key] = true;
 }
 
+window.onkeyup = function(e){
+    keysDown[e.key] = false;
+}
+
+function handleMovement(delta){
+    if(keysDown['w']){
+        player.accelerate(1, delta);
+    }
+    if(keysDown['s']){
+        player.accelerate(-1, delta);
+    }
+    if(keysDown['a']){
+        player.strafe(-1, delta);
+    }
+    if(keysDown['d']){
+        player.strafe(1, delta);
+    }
+    if(keysDown[' ']){
+        player.moveUp(1, delta);
+    }
+    if(keysDown['Shift']){
+        player.moveUp(-1, delta);
+    }
+}
 
 function mouseControls(e){
     // Only rotate when locked

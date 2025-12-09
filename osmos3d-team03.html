@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- 
-    CSCI 2408 Computer Graphics Fall 2025 
-    (c)2025 by Name Surname 
+<!--
+    CSCI 2408 Computer Graphics Fall 2025
+    (c)2025 by Name Surname
     Submitted in partial fulfillment of the requirements of the course.
 -->
 <html>
@@ -11,22 +11,62 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
     attribute vec3 vPosition;
+    attribute vec3 vNormal;
+    attribute vec2 vTexCoord;
 
     uniform mat4 ctm;
+    uniform mat4 world;
+    uniform mat4 normalMatrix;
+
+    varying vec3 fNormal;
+    varying vec3 fragPos;
+    varying vec2 fTexCoord;
 
     void main() {
-        // Just use the vertex as is.
         gl_Position = ctm * vec4(vPosition, 1.0);
+        fragPos = (world * vec4(vPosition, 1.0)).xyz;
+        fNormal = mat3(normalMatrix) * vNormal;
+        fTexCoord = vTexCoord;
     }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
-    // Set how many bits used for float values. Will not work otherwise.
     precision mediump float;
 
+    struct Material {
+        vec3 diffuse;
+        float alpha;
+    };
+
+    varying vec3 fNormal;
+    varying vec3 fragPos;
+    varying vec2 fTexCoord;
+
+    uniform vec3 ambient;
+    uniform vec3 lightPos;
+    uniform vec3 lightColor;
+    uniform vec3 viewPos;
+    uniform float shininess;
+    uniform Material material;
+    uniform sampler2D uTexture;
+    uniform bool useTexture;
+
     void main() {
-        // Just use one color. 
-        gl_FragColor = vec4( 1.0, 0.5, 0.0, 1.0 );
+        vec3 norm = normalize(fNormal);
+        vec3 lightDir = normalize(lightPos - fragPos);
+        float diff = max(dot(norm, lightDir), 0.0);
+
+        vec3 viewDir = normalize(viewPos - fragPos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+
+        vec3 baseColor = material.diffuse;
+        if (useTexture) {
+            baseColor *= texture2D(uTexture, fTexCoord).rgb;
+        }
+
+        vec3 lighting = ambient * baseColor + diff * lightColor * baseColor + spec * lightColor;
+        gl_FragColor = vec4(lighting, material.alpha);
     }
 </script>
 
@@ -41,6 +81,7 @@
     <script type="text/javascript" src="player.js"></script>
     <script type="text/javascript" src="controls.js"></script>
     <script type="text/javascript" src="renderer.js"></script>
+    <script type="text/javascript" src="lighting.js"></script>
     <script type="text/javascript" src="osmos3d-team03.js"></script>
 </head>
 

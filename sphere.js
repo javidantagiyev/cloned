@@ -1,6 +1,8 @@
-function generateSphereVertices(radius = 1, detail = 1) {
+function generateSphere(radius = 1, detail = 1) {
     const vertices = [];
-    
+    const normals = [];
+    const texCoords = [];
+
     const latitudeBands = 8 * detail;
     const longitudeBands = 8 * detail;
 
@@ -23,15 +25,24 @@ function generateSphereVertices(radius = 1, detail = 1) {
             const v3 = [cosp2 * sin2, cos2, sinp2 * sin2];
             const v4 = [cosp2 * sin1, cos1, sinp2 * sin1];
 
+            const t1 = [lon / longitudeBands, lat / latitudeBands];
+            const t2 = [lon / longitudeBands, (lat + 1) / latitudeBands];
+            const t3 = [(lon + 1) / longitudeBands, (lat + 1) / latitudeBands];
+            const t4 = [(lon + 1) / longitudeBands, lat / latitudeBands];
+
             // Triangle 1
-            vertices.push(...v1, ...v3, ...v2);
+            vertices.push(...scale(radius, v1), ...scale(radius, v3), ...scale(radius, v2));
+            normals.push(...v1, ...v3, ...v2);
+            texCoords.push(...t1, ...t3, ...t2);
 
             // Triangle 2
-            vertices.push(...v1, ...v4, ...v3);
+            vertices.push(...scale(radius, v1), ...scale(radius, v4), ...scale(radius, v3));
+            normals.push(...v1, ...v4, ...v3);
+            texCoords.push(...t1, ...t4, ...t3);
         }
     }
 
-    return vertices;
+    return { vertices, normals, texCoords };
 }
 
 const cubeVertices = [
