@@ -42,16 +42,15 @@ var alphaLocation;
 // Game
 var camera;
 var player;
-var motes = [];
 var skybox;
 var lightAngle = 0;
 var lightPos = [10, 10, 0];
 
 // Constants
-const SKY_RADIUS = 25;
+const SKY_RADIUS = 60;
 const GRAVITY = 0.0;
 const DAMPING = 0.98;
-const MOTE_COUNT = 18;
+const MOTE_COUNT = 28;
 const SMALL_COLOR = [0.2, 0.7, 1.0];
 const LARGE_COLOR = [1.0, 0.4, 0.3];
 
@@ -94,41 +93,7 @@ function setupScene(){
     player.model.setTexture(playerTexture);
 
     skybox = createSkybox();
-    createMotes();
-}
-
-function createMotes(){
-    motes = [];
-    const attempts = 500;
-    let created = 0;
-    let tries = 0;
-    while(created < MOTE_COUNT && tries < attempts){
-        const radius = 0.4 + Math.random() * 1.8;
-        const angle = Math.random() * Math.PI * 2;
-        const height = (Math.random() - 0.5) * (SKY_RADIUS * 0.8);
-        const dist = Math.random() * (SKY_RADIUS - radius - 2);
-        const x = Math.cos(angle) * dist;
-        const z = Math.sin(angle) * dist;
-        const position = [x, height, z];
-
-        const intersects = motes.some(m => distance(position, m.position) < (radius + m.radius + 0.5)) ||
-            distance(position, player.position) < (radius + player.radius + 1);
-        if(intersects){
-            tries++;
-            continue;
-        }
-
-        const geo = generateSphereVertices(radius, 8);
-        const model = new Model(geo.vertices, null, position, geo.normals, geo.texCoords);
-        model.setTexture(sphereTexture);
-        motes.push({
-            position,
-            radius,
-            model,
-            velocity: [0,0,0]
-        });
-        created++;
-    }
+    resetEnemies(player, sphereTexture);
 }
 
 function createSkybox(){
@@ -169,8 +134,8 @@ function update(delta){
         player.velocity = add(player.velocity, bounce);
     }
 
-    // Mote collisions
-    motes = motes.filter(mote => handleCollision(mote));
+    // Enemy movement and collisions
+    updateEnemies(delta, player);
 
     // Update models
     player.model.setPosition(player.position[0], player.position[1], player.position[2]);
@@ -178,34 +143,12 @@ function update(delta){
     player.camera.updateView();
     player.model.setTexture(playerTexture);
 
-    motes.forEach(m => {
-        m.model.setPosition(m.position[0], m.position[1], m.position[2]);
-        m.model.update();
-    });
-
     // Animate light
     lightAngle += delta * 20;
     const radius = 20;
     const lx = Math.cos(radians(lightAngle)) * radius;
     const lz = Math.sin(radians(lightAngle)) * radius;
     lightPos = [lx, 10, lz];
-}
-
-function handleCollision(mote){
-    const dist = distance(player.position, mote.position);
-    if(dist < player.radius + mote.radius){
-        if(player.radius >= mote.radius){
-            const newVolume = Math.pow(player.radius, 3) + Math.pow(mote.radius, 3);
-            player.setRadius(Math.cbrt(newVolume));
-            return false;
-        } else {
-            // Player is absorbed
-            player.setRadius(0);
-            player.velocity = [0,0,0];
-            return false;
-        }
-    }
-    return true;
 }
 
 // Rendering
@@ -228,8 +171,8 @@ function render(){
     });
     gl.enable(gl.CULL_FACE);
 
-    // Draw motes
-    motes.forEach(mote => {
+    // Draw enemies
+    enemies.forEach(mote => {
         const color = pickColor(mote.radius);
         draw(mote.model, player.camera, {
             color,
@@ -279,6 +222,25 @@ function initTextures(){
     sphereTexture = createCheckerTexture([200, 230, 255, 255], [180, 210, 245, 255]);
     playerTexture = createCheckerTexture([255, 200, 200, 255], [240, 150, 150, 255]);
     skyTexture = createStarTexture();
+
+    loadTextureFromImage('enemies.png', (texture) => {
+        sphereTexture = texture;
+        setEnemyTexture(sphereTexture);
+    });
+
+    loadTextureFromImage('player.png', (texture) => {
+        playerTexture = texture;
+        if(player){
+            player.model.setTexture(playerTexture);
+        }
+    });
+
+    loadTextureFromImage('cosmos.png', (texture) => {
+        skyTexture = texture;
+        if(skybox){
+            skybox.setTexture(skyTexture);
+        }
+    });
 }
 
 // Utils
@@ -332,6 +294,32 @@ function createStarTexture(){
         }
     }
     return buildTexture(data, size, size);
+}
+
+function loadTextureFromImage(src, onLoad){
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    const image = new Image();
+    image.onload = function(){
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        if(onLoad){
+            onLoad(texture);
+        }
+    };
+    image.onerror = function(){
+        console.warn('Texture failed to load:', src);
+    };
+    image.src = src;
+
+    return texture;
 }
 
 function buildTexture(data, width, height){
