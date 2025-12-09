@@ -1,21 +1,31 @@
+const keyStates = {};
+
 function keyContols(e){
-    if(e.key == 'w'){
-        player.moveForward(deltaTime);
+    keyStates[e.key] = true;
+}
+
+function keyUpControls(e){
+    keyStates[e.key] = false;
+}
+
+function applyMovementControls(delta){
+    if(keyStates['w']){
+        player.moveForward(delta);
     }
-    if(e.key == 'a'){
-        player.moveLeft(deltaTime);
+    if(keyStates['a']){
+        player.moveLeft(delta);
     }
-    if(e.key == 's'){
-        player.moveBack(deltaTime);
+    if(keyStates['s']){
+        player.moveBack(delta);
     }
-    if(e.key == 'd'){
-        player.moveRight(deltaTime);
+    if(keyStates['d']){
+        player.moveRight(delta);
     }
-    if(e.key == ' '){ // It is space button
-        player.move(0.0, player.speed * deltaTime, 0.0);
+    if(keyStates[' ']){ // space
+        player.addVelocity(0.0, player.speed, 0.0);
     }
-    if(e.key == 'Shift'){
-        player.move(0.0, -player.speed * deltaTime, 0.0);
+    if(keyStates['Shift']){
+        player.addVelocity(0.0, -player.speed, 0.0);
     }
 }
 
