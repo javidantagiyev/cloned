@@ -13,7 +13,7 @@ class Player{
     model;
     camera;
 
-    constructor(position, model, radius = 0.5, speed = 5){
+    constructor(position, model, radius = 0.5, speed = 1){
         this.model = model;
         this.position = position;
         model.setPosition(position[0], position[1], position[2]);
