@@ -70,6 +70,7 @@ function updateEnemies(delta, player){
     enemies.forEach(enemy => {
         enemy.integrate(delta);
     });
+    resolveEnemyCollisions();
     enemies = enemies.filter(enemy => resolvePlayerEnemyCollision(player, enemy));
     enemies.forEach(enemy => enemy.updateModel());
 }
@@ -81,6 +82,43 @@ function setEnemyTexture(texture){
 function detectCollision(entityA, entityB){
     const distanceBetween = distance(entityA.position, entityB.position);
     return distanceBetween < (entityA.radius + entityB.radius);
+}
+
+function resolveEnemyCollisions(){
+    const removed = new Set();
+    for(let i = 0; i < enemies.length; i++){
+        if(removed.has(i)) continue;
+        for(let j = i + 1; j < enemies.length; j++){
+            if(removed.has(j)) continue;
+            const enemyA = enemies[i];
+            const enemyB = enemies[j];
+            if(!detectCollision(enemyA, enemyB)) continue;
+
+            const larger = enemyA.radius >= enemyB.radius ? enemyA : enemyB;
+            const smallerIndex = larger === enemyA ? j : i;
+            const smaller = enemies[smallerIndex];
+
+            mergeEnemies(larger, smaller);
+            removed.add(smallerIndex);
+        }
+    }
+
+    enemies = enemies.filter((_, idx) => !removed.has(idx));
+}
+
+function mergeEnemies(larger, smaller){
+    const largerMass = Math.pow(larger.radius, 3);
+    const smallerMass = Math.pow(smaller.radius, 3);
+    const combinedMass = largerMass + smallerMass;
+
+    const combinedVelocity = [
+        (larger.velocity[0] * largerMass + smaller.velocity[0] * smallerMass) / combinedMass,
+        (larger.velocity[1] * largerMass + smaller.velocity[1] * smallerMass) / combinedMass,
+        (larger.velocity[2] * largerMass + smaller.velocity[2] * smallerMass) / combinedMass,
+    ];
+
+    larger.radius = Math.cbrt(combinedMass);
+    larger.velocity = combinedVelocity;
 }
 
 function resolvePlayerEnemyCollision(player, enemy){

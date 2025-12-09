@@ -40,33 +40,37 @@ class Player{
     // Moving player in camera directions
     moveForward(delta){
         const direct = this.camera.direction;
-        const x = (direct[0] * this.speed);
-        const y = (direct[1] * this.speed);
-        const z = (direct[2] * this.speed);
+        const scaleFactor = this.speed * delta;
+        const x = (direct[0] * scaleFactor);
+        const y = (direct[1] * scaleFactor);
+        const z = (direct[2] * scaleFactor);
         this.addVelocity(x, y, z);
     }
 
     moveBack(delta){
         const direct = this.camera.direction;
-        const x = -(direct[0] * this.speed);
-        const y = -(direct[1] * this.speed);
-        const z = -(direct[2] * this.speed);
+        const scaleFactor = this.speed * delta;
+        const x = -(direct[0] * scaleFactor);
+        const y = -(direct[1] * scaleFactor);
+        const z = -(direct[2] * scaleFactor);
         this.addVelocity(x, y, z);
     }
 
     moveRight(delta){
         const right = cross(this.camera.direction, this.camera.cameraUp);
-        const x = (right[0] * this.speed);
-        const y = (right[1] * this.speed);
-        const z = (right[2] * this.speed);
+        const scaleFactor = this.speed * delta;
+        const x = (right[0] * scaleFactor);
+        const y = (right[1] * scaleFactor);
+        const z = (right[2] * scaleFactor);
         this.addVelocity(x, y, z);
     }
 
     moveLeft(delta){
         const right = cross(this.camera.direction, this.camera.cameraUp);
-        const x = -(right[0] * this.speed);
-        const y = -(right[1] * this.speed);
-        const z = -(right[2] * this.speed);
+        const scaleFactor = this.speed * delta;
+        const x = -(right[0] * scaleFactor);
+        const y = -(right[1] * scaleFactor);
+        const z = -(right[2] * scaleFactor);
         this.addVelocity(x, y, z);
     }
 

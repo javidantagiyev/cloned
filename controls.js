@@ -22,10 +22,10 @@ function applyMovementControls(delta){
         player.moveRight(delta);
     }
     if(keyStates[' ']){ // space
-        player.addVelocity(0.0, player.speed, 0.0);
+        player.addVelocity(0.0, player.speed * delta, 0.0);
     }
     if(keyStates['Shift']){
-        player.addVelocity(0.0, -player.speed, 0.0);
+        player.addVelocity(0.0, -player.speed * delta, 0.0);
     }
 }
 

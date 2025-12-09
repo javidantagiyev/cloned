@@ -86,7 +86,7 @@ function init() {
 function setupScene(){
     const playerGeo = generateSphereVertices(1, 12);
     const playerModel = new Model(playerGeo.vertices, null, [0.0, -SKY_RADIUS * 0.3, 5.0], playerGeo.normals, playerGeo.texCoords);
-    player = new Player([0.0, -SKY_RADIUS * 0.3, 5.0], playerModel, 0.8, 6);
+    player = new Player([0.0, -SKY_RADIUS * 0.3, 5.0], playerModel, 0.8, 3.5);
     player.camera.m_pitch = -15;
     player.camera.distance = 6.5;
     player.camera.updateView();
@@ -309,7 +309,15 @@ function loadTextureFromImage(src, onLoad){
     image.onload = function(){
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        const isPot = isPowerOfTwo(image.width) && isPowerOfTwo(image.height);
+        if(isPot){
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        }
         if(onLoad){
             onLoad(texture);
         }
@@ -320,6 +328,10 @@ function loadTextureFromImage(src, onLoad){
     image.src = src;
 
     return texture;
+}
+
+function isPowerOfTwo(value){
+    return (value & (value - 1)) === 0;
 }
 
 function buildTexture(data, width, height){
