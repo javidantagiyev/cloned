@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!-- 
+    CSCI 2408 Computer Graphics Fall 2025 
+    (c)2025 by Name Surname 
+    Submitted in partial fulfillment of the requirements of the course.
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>WebGL Team Project: Osmos 3D</title>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+    attribute vec3 vPosition;
+
+    uniform mat4 ctm;
+
+    void main() {
+        // Just use the vertex as is.
+        gl_Position = ctm * vec4(vPosition, 1.0);
+    }
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+    // Set how many bits used for float values. Will not work otherwise.
+    precision mediump float;
+
+    void main() {
+        // Just use one color. 
+        gl_FragColor = vec4( 1.0, 0.5, 0.0, 1.0 );
+    }
+</script>
+
+<!-- Copyright (c) <2012-2015> Ed Angel and Dave Shreiner -->
+<script type="text/javascript" src="common/webgl-utils.js"></script>
+<script type="text/javascript" src="common/initShaders.js"></script>
+<script type="text/javascript" src="common/MV.js"></script>
+<!-- Copyright (c) <2012-2015> Ed Angel and Dave Shreiner -->
+    <script type="text/javascript" src="camera.js"></script>
+    <script type="text/javascript" src="model.js"></script>
+    <script type="text/javascript" src="sphere.js"></script>
+    <script type="text/javascript" src="player.js"></script>
+    <script type="text/javascript" src="controls.js"></script>
+    <script type="text/javascript" src="renderer.js"></script>
+    <script type="text/javascript" src="osmos3d-team03.js"></script>
+</head>
+
+<body style="background-color: #888888;">
+    <center>
+        <canvas id="gl-canvas" width="800" height="600">
+            Sorry ... your browser doesn't support the HTML5 canvas element.
+        </canvas>
+    </center>
+</body>
+</html>
