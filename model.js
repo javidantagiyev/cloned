@@ -7,12 +7,18 @@ const RenderMode = {
 // There is a chance that spheres also will be models.
 class Model{
     vertexBuffer;
+    normalBuffer;
+    texCoordBuffer;
     indexBuffer;
     mode;
     vertexCount;
     indexCount;
     worldMatrix;
     posAttribLocation;
+    normalAttribLocation;
+    texCoordAttribLocation;
+
+    texture;
 
     // Transformation params
     position;
@@ -21,10 +27,22 @@ class Model{
     rotateY;
     rotateZ;
     
-    constructor(vertices, indices, position = [0.0, 0.0, 0.0]){
+    constructor(vertices, indices = null, position = [0.0, 0.0, 0.0], normals = null, texCoords = null){
         this.vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+        if(normals){
+            this.normalBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+        }
+
+        if(texCoords){
+            this.texCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+        }
         
         if(indices == null){
             this.mode = RenderMode.ARRAYS;
@@ -34,8 +52,9 @@ class Model{
         }
 
         this.posAttribLocation = gl.getAttribLocation(program, "vPosition");
-        gl.enableVertexAttribArray(this.posAttribLocation);
-        
+        this.normalAttribLocation = gl.getAttribLocation(program, "vNormal");
+        this.texCoordAttribLocation = gl.getAttribLocation(program, "vTexCoord");
+
         this.worldMatrix = mat4();
         this.vertexCount = vertices.length / 3;
         this.position = position;
@@ -44,11 +63,23 @@ class Model{
         this.rotateY = 0.0;
         this.rotateZ = 0.0;
     }
-    
+
     bind(){
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
         gl.vertexAttribPointer(this.posAttribLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
         gl.enableVertexAttribArray(this.posAttribLocation);
+
+        if(this.normalBuffer && this.normalAttribLocation !== -1){
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+            gl.vertexAttribPointer(this.normalAttribLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
+            gl.enableVertexAttribArray(this.normalAttribLocation);
+        }
+
+        if(this.texCoordBuffer && this.texCoordAttribLocation !== -1){
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+            gl.vertexAttribPointer(this.texCoordAttribLocation, 2, gl.FLOAT, gl.FALSE, 0, 0);
+            gl.enableVertexAttribArray(this.texCoordAttribLocation);
+        }
     }
 
 
@@ -87,5 +118,9 @@ class Model{
 
     setSize(s){
         this.scaleFactor = s;
+    }
+
+    setTexture(texture){
+        this.texture = texture;
     }
 }
