@@ -24,6 +24,10 @@ class Camera{
     // Used for third person view
     // If it is 0 camera become first person
     distance;
+    // Vertical offset so the camera sits above the anchor point
+    heightOffset;
+    // Horizontal offset so the camera sits over the player's shoulder
+    shoulderOffset;
     
     // Consts
     ZOOM_FACTOR = 0.3;
@@ -35,11 +39,12 @@ class Camera{
     MAX_DISTANCE = 10;
     MIN_DISTANCE = 0.1;
 
-    constructor(cameraPos, cameraTarget, fov, near, far, sensitivity = 0.05, distance = 5){
+    constructor(cameraPos, cameraTarget, fov, near, far, sensitivity = 0.05, distance = 5, heightOffset = 0.0, shoulderOffset = 0.0){
         // View
         this.position = cameraPos;
         this.cameraUp = [0.0, 1.0, 0.0];
         this.view = lookAt(this.position, cameraTarget, this.cameraUp);
+        this.eyePosition = cameraPos;
 
         // Projection
         this.fov = fov;
@@ -52,6 +57,8 @@ class Camera{
         this.m_roll = 0.0;
         this.sensitivity = sensitivity;
         this.distance = distance;
+        this.heightOffset = heightOffset;
+        this.shoulderOffset = shoulderOffset;
     }
 
     // Recalculates projection matrix
@@ -62,15 +69,22 @@ class Camera{
     // Recalculates view matrix
     updateView(){
         this.direction = this.calcDirection();
-        var cameraTarget = add(this.calcDirection(), this.position);
+        var anchor = add(this.position, [0.0, this.heightOffset, 0.0]);
         var direct = scale(this.distance, this.direction);
-        var newPos = subtract(this.position, direct);
+        var right = cross(this.direction, this.cameraUp);
+        var rightLen = Math.sqrt(right[0] * right[0] + right[1] * right[1] + right[2] * right[2]);
+        if(rightLen > 0.0001){
+            right = normalize(right);
+        } else {
+            right = [1.0, 0.0, 0.0];
+        }
 
-        this.view = lookAt(
-            newPos,
-            this.position,
-            this.cameraUp
-        );
+        var shoulder = scale(this.shoulderOffset, right);
+        var newPos = add(subtract(anchor, direct), shoulder);
+        var cameraTarget = add(anchor, this.direction);
+
+        this.eyePosition = newPos;
+        this.view = lookAt(newPos, cameraTarget, this.cameraUp);
     }
     
     // Calculated the direction that camera is looking at

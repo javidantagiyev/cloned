@@ -15,7 +15,8 @@ function draw(model, camera, material){
     var normalMatrix = normalMatrixFromWorld(model.worldMatrix, camera.view);
     gl.uniformMatrix3fv(worldNormalMatrixLocation, false, flatten(normalMatrix));
 
-    gl.uniform3fv(viewerLocation, new Float32Array(camera.position));
+    var viewPosition = camera.eyePosition ?? camera.position;
+    gl.uniform3fv(viewerLocation, new Float32Array(viewPosition));
 
     if(material){
         gl.uniform3fv(materialColorLocation, new Float32Array(material.color));
